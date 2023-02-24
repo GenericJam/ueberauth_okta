@@ -134,6 +134,20 @@ defmodule MyApp.AuthController do
 end
 ```
 
+Some Okta servers don't want duplicate information in the header and the body of the `get_token` request.
+
+This was encountered in particular with the John Deere API but seems likely to be elsewhere in the wild.
+
+If you get an [error message like this one](https://devforum.okta.com/t/error-cannot-supply-multiple-client-credentials/10307) you probably need to get the token like this.
+
+```elixir
+code = "code given to you in the callback / redirect request"
+
+client = OAuth2.Client.put_serializer(client, "application/json", Jason)
+# Needs to have the code already and the flag to use this is ` minimal: true`
+{:ok, client} = OAuth2.Client.get_token(client, [code: code, minimal: true], [])
+```
+
 ## Copyright and License
 
 Copyright (c) 2022 Jon Carstens

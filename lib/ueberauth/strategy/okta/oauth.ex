@@ -103,6 +103,20 @@ defmodule Ueberauth.Strategy.Okta.OAuth do
 
   @impl OAuth2.Strategy
   def get_token(client, params, headers) do
+    {minimal, params} = Keyword.pop(params, :minimal, nil)
+
+    client =
+      if minimal do
+        # Minimal only puts in code, grant type, url into body
+        # Some (?) Okta servers consider client_id duplicate information
+        {code, _params} = Keyword.pop(params, :code, client.params["code"])
+
+        %{client | params: %{}}
+        |> put_param(:code, code)
+      else
+        client
+      end
+
     client
     |> put_header("Accept", "application/json")
     |> validate_code(params)
